@@ -54,7 +54,7 @@ typedef int16_t glsi16;
    written to a data file called "profile-raw".
    (Build note: on Linux, glibc may require you to also define
    _BSD_SOURCE or _DEFAULT_SOURCE or both for the timeradd() macro.) */
-/* #define VM_PROFILING (1) */
+#define VM_PROFILING (1)
 
 /* Uncomment this definition to turn on the Glulx debugger. You should
    only do this when debugging facilities are desired; it slows down

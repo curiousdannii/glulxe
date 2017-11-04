@@ -3,16 +3,38 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "emglulxeen.h"
+#include "glk.h"
 #include "glulxe.h"
 
 // Copied from gitMain from git.c, with an additional glk_exit call
-void emglulxeen (char * data, glui32 dataSize)
+void emglulxeen ( char * data, glui32 dataSize, char * profile_filename, glui32 profcalls )
 {
     unsigned char buf[12];
     int res;
 
      // Initialise emglken
     init_emglken();
+
+    #if VM_PROFILING
+        if ( profile_filename[0] != '\0' )
+        {
+            frefid_t fref = glk_fileref_create_by_name( fileusage_Data | fileusage_BinaryMode, profile_filename, 0 );
+            if ( fref )
+            {
+                strid_t profstr = glk_stream_open_file( fref, filemode_Write, 0 );
+                glk_fileref_destroy( fref );
+                if ( profstr )
+                {
+                    setup_profile( profstr, NULL );
+                }
+            }
+
+        }
+        if ( profcalls )
+        {
+            profile_set_call_counts( TRUE );
+        }
+    #endif /* VM_PROFILING */
 
     // Set up the game stream
     gamefile = glk_stream_open_memory( data, dataSize, filemode_Read, 0 );

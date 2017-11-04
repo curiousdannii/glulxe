@@ -20,6 +20,9 @@ class Glulxe extends EmglkenVM
 			dirname: __dirname,
 			emptfile: 'glulxe-core.js.bin',
 			module: require( './glulxe-core.js' ),
+
+			profile_filename: '',
+			profcalls: 0,
 		}
 	}
 	
@@ -28,8 +31,8 @@ class Glulxe extends EmglkenVM
 		this.vm.ccall(
 			'emglulxeen',
 			null,
-			[ 'array', 'number' ],
-			[ this.data, this.data.length ],
+			[ 'array', 'number', 'string', 'number' ],
+			[ this.data, this.data.length, this.options.profile_filename, this.options.profcalls ],
 			{ async: true }
 		)
 		delete this.data
