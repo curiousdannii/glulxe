@@ -7,9 +7,11 @@
 # sets of values appear below; uncomment one of them and change the
 # directories appropriately.
 
-GLKINCLUDEDIR = ../cheapglk
-GLKLIBDIR = ../cheapglk
-GLKMAKEFILE = Make.cheapglk
+GLK = emglken
+
+GLKINCLUDEDIR = ../$(GLK)
+GLKLIBDIR = ../$(GLK)
+GLKMAKEFILE = Make.$(GLK)
 
 #GLKINCLUDEDIR = ../glkterm
 #GLKLIBDIR = ../glkterm
@@ -28,8 +30,17 @@ GLKMAKEFILE = Make.cheapglk
 #GLKMAKEFILE = ../Make.gtkglk
 
 # Pick a C compiler.
-CC = cc
-#CC = gcc
+CC = emcc \
+	-O3
+
+LINK_OPTS = \
+	--js-library $(GLKINCLUDEDIR)/library.js \
+	-s EMTERPRETIFY=1 \
+	-s EMTERPRETIFY_ASYNC=1 \
+	-s EMTERPRETIFY_WHITELIST='"@whitelist.json"' \
+	-s EMTERPRETIFY_FILE='"glulxe-core.js.bin"' \
+	-s EXPORTED_FUNCTIONS='["_emglulxeen"]' \
+	-s MODULARIZE=1
 
 OPTIONS = -g -Wall -Wmissing-prototypes -Wstrict-prototypes -Wno-unused -DOS_UNIX
 
@@ -45,21 +56,20 @@ LIBS = -L$(GLKLIBDIR) $(GLKLIB) $(LINKLIBS) -lm $(XMLLIB)
 
 OBJS = main.o files.o vm.o exec.o funcs.o operand.o string.o glkop.o \
   heap.o serial.o search.o accel.o float.o gestalt.o osdepend.o \
-  profile.o debugger.o
+  profile.o debugger.o emglulxeen.o
 
-all: glulxe
+all: glulxe-core.js
 
-glulxe: $(OBJS) unixstrt.o
-	$(CC) $(OPTIONS) -o glulxe $(OBJS) unixstrt.o $(LIBS)
+glulxe-core.js: $(OBJS) $(GLKINCLUDEDIR)/Make.$(GLK) $(GLKINCLUDEDIR)/libemglken.a $(GLKINCLUDEDIR)/library.js
+	$(CC) $(OPTIONS) $(LINK_OPTS) -o $@ $(OBJS) $(LIBS)
 
 glulxdump: glulxdump.o
 	$(CC) -o glulxdump glulxdump.o
 
-$(OBJS) unixstrt.o: glulxe.h
+$(OBJS): glulxe.h emglulxeen.h
 
 exec.o operand.o: opcodes.h
 gestalt.o: gestalt.h
 
 clean:
-	rm -f *~ *.o glulxe glulxdump profile-raw
-
+	rm -f *~ *.o glulxe-core.js glulxdump profile-raw
