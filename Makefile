@@ -42,7 +42,7 @@ LINK_OPTS = \
 	-s EXPORTED_FUNCTIONS='["_emglulxeen"]' \
 	-s MODULARIZE=1
 
-OPTIONS = -g -Wall -Wmissing-prototypes -Wstrict-prototypes -Wno-unused -DOS_UNIX
+OPTIONS = -Wall -Wmissing-prototypes -Wstrict-prototypes -Wno-unused -DOS_UNIX
 
 # Locate the libxml2 library. You only need these lines if you are using
 # the VM_DEBUGGER option. If so, uncomment these and set appropriately.
