@@ -7,7 +7,7 @@
 #include "glulxe.h"
 
 // Copied from gitMain from git.c, with an additional glk_exit call
-void emglulxeen ( char * data, glui32 dataSize, char * profile_filename, glui32 profcalls )
+void emglulxeen ( glui32 gameStreamTag, glui32 profileStreamTag, glui32 profcalls )
 {
     unsigned char buf[12];
     int res;
@@ -16,19 +16,13 @@ void emglulxeen ( char * data, glui32 dataSize, char * profile_filename, glui32 
     init_emglken();
 
     #if VM_PROFILING
-        if ( profile_filename[0] != '\0' )
+        if ( profileStreamTag )
         {
-            frefid_t fref = glk_fileref_create_by_name( fileusage_Data | fileusage_BinaryMode, profile_filename, 0 );
-            if ( fref )
+            strid_t profstr = gli_new_stream( strtype_File, profileStreamTag, 0 );
+            if ( profstr )
             {
-                strid_t profstr = glk_stream_open_file( fref, filemode_Write, 0 );
-                glk_fileref_destroy( fref );
-                if ( profstr )
-                {
-                    setup_profile( profstr, NULL );
-                }
+                setup_profile( profstr, NULL );
             }
-
         }
         if ( profcalls )
         {
@@ -37,7 +31,7 @@ void emglulxeen ( char * data, glui32 dataSize, char * profile_filename, glui32 
     #endif /* VM_PROFILING */
 
     // Set up the game stream
-    gamefile = glk_stream_open_memory( data, dataSize, filemode_Read, 0 );
+    gamefile = gli_new_stream( strtype_File, gameStreamTag, 0 );
 
     /* Now we have to check to see if it's a Blorb file. */
 
@@ -87,5 +81,5 @@ void emglulxeen ( char * data, glui32 dataSize, char * profile_filename, glui32 
     }
 
     glk_main();
-	glk_exit();
+    glk_exit();
 }

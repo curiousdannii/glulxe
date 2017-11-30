@@ -10,6 +10,6 @@
 #include "emglken.h"
 #include "glulxe.h"
 
-extern void emglulxeen (char * data, glui32 dataSize, char * profile_file, glui32 profcalls);
+extern void emglulxeen ( glui32 gameStreamTag, glui32 profileStreamTag, glui32 profcalls );
 
 #endif // EMGLULXEEN_H
