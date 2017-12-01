@@ -1,3 +1,4 @@
 *.o
 glulxe
 glulxe-core.js*
+glulxe-profiler-core.js*
