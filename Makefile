@@ -41,6 +41,7 @@ OBJS = main.o files.o vm.o exec.o funcs.o operand.o string.o glkop.o \
   heap.o serial.o search.o accel.o float.o gestalt.o osdepend.o \
   profile.o debugger.o emglulxeen.o
 
+all: glulxe-core.js glulxe-profiler-core.js
 
 # Set up to build twice with and without the profiler
 # From https://stackoverflow.com/a/19744628/2854284
@@ -48,18 +49,19 @@ PROFILEROBJ = $(patsubst %.o, profiler/%.o, $(OBJS))
 NOPROFILEROBJ = $(patsubst %.o, noprofiler/%.o, $(OBJS))
 
 profiler/%.o: %.c
-	mkdir -p profiler
 	$(CC) $(CFLAGS) -c -o $@ $<
 noprofiler/%.o: %.c
-	mkdir -p noprofiler
 	$(CC) $(CFLAGS) -c -o $@ $<
+
+profiler:
+	mkdir -p profiler
+noprofiler:
+	mkdir -p noprofiler
 
 glulxe-core.js: LINK_OPTS += -s EMTERPRETIFY_FILE='"glulxe-core.js.bin"'
 glulxe-profiler-core.js: CFLAGS += -DVM_PROFILING
 glulxe-profiler-core.js: LINK_OPTS += -s EMTERPRETIFY_FILE='"glulxe-profiler-core.js.bin"'
 
-
-all: glulxe-core.js glulxe-profiler-core.js
 
 glulxe-core.js: $(NOPROFILEROBJ) $(GLKINCLUDEDIR)/Make.$(GLK) $(GLKINCLUDEDIR)/libemglken.a $(GLKINCLUDEDIR)/library.js
 	$(CC) $(OPTIONS) $(LINK_OPTS) -o $@ $(NOPROFILEROBJ) $(LIBS)
@@ -68,8 +70,8 @@ glulxe-profiler-core.js: $(PROFILEROBJ) $(GLKINCLUDEDIR)/Make.$(GLK) $(GLKINCLUD
 	$(CC) $(OPTIONS) $(LINK_OPTS) -o $@ $(PROFILEROBJ) $(LIBS)
 
 
-$(PROFILEROBJ): glulxe.h emglulxeen.h
-$(NOPROFILEROBJ): glulxe.h emglulxeen.h
+$(PROFILEROBJ): glulxe.h emglulxeen.h | profiler
+$(NOPROFILEROBJ): glulxe.h emglulxeen.h | noprofiler
 
 %/exec.o %/operand.o: opcodes.h
 %/gestalt.o: gestalt.h
