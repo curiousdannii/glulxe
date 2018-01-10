@@ -26,9 +26,9 @@ class Glulxe extends EmglkenVM
 		}
 	}
 	
-	start()
+	async start()
 	{
-		const data_stream = this.options.Glk.glk_stream_open_memory( this.data, 2, 0 )
+		const data_stream = await this.options.Glk.glk_stream_open_memory( this.data, 2, 0 )
 		this.vm['_emglulxeen']( data_stream.disprock, 0, 0 )
 		delete this.data
 	}

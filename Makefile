@@ -21,6 +21,7 @@ LINK_OPTS = \
 	--js-library $(GLKINCLUDEDIR)/library.js \
 	-s EMTERPRETIFY=1 \
 	-s EMTERPRETIFY_ASYNC=1 \
+	-s EMTERPRETIFY_SYNCLIST='"@$(GLKINCLUDEDIR)/emglken_synclist.json"' \
 	-s EMTERPRETIFY_WHITELIST='"@whitelist.json"' \
 	-s EXPORTED_FUNCTIONS='["_emglulxeen"]' \
 	-s MODULARIZE=1
