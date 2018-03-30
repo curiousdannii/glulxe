@@ -6,7 +6,7 @@
 #include "glk.h"
 #include "glulxe.h"
 
-// Copied from gitMain from git.c, with an additional glk_exit call
+// Adapted from glkunix_startup_code() from unixstrt.c
 void emglulxeen ( glui32 gameStreamTag, glui32 profileStreamTag, glui32 profcalls )
 {
     unsigned char buf[12];
@@ -83,3 +83,53 @@ void emglulxeen ( glui32 gameStreamTag, glui32 profileStreamTag, glui32 profcall
     glk_main();
     glk_exit();
 }
+
+// Stub functions for profiling mode
+#if VM_PROFILING
+
+void emautosave( glui32 jsonStreamTag, glui32 ramStreamTag ) {}
+
+#else /* VM_PROFILING */
+
+void print_json_property( char *prop, glui32 num, int last );
+
+void emautosave( glui32 jsonStreamTag, glui32 ramStreamTag )
+{
+    // Prepare for outputting JSON
+    strid_t oldstr = glk_stream_get_current();
+    strid_t jsonstream = gli_new_stream( strtype_Memory, jsonStreamTag, 0 );
+    glk_stream_set_current( jsonstream );
+    glk_put_char( '{' );
+
+    // Output the number properties
+    glui32 iosysmode;
+    glui32 iosysrock;
+    stream_get_iosys( &iosysmode, &iosysrock );
+    print_json_property( "iosysmode", iosysmode, 0 );
+    print_json_property( "iosysrock", iosysrock, 0 );
+    print_json_property( "protectend", protectend, 0 );
+    print_json_property( "protectstart", protectstart, 0 );
+    print_json_property( "stringtable", stringtable, 1 );
+
+    // Finish up the JSON
+    glk_put_char( '}' );
+    glk_stream_set_current( oldstr );
+
+    // Save the RAM/savefile
+    strid_t ramstream = gli_new_stream( strtype_Memory, ramStreamTag, 0 );
+    perform_save( ramstream );
+}
+
+void print_json_property( char *prop, glui32 num, int last )
+{
+    glk_put_char( '"' );
+    glk_put_string( prop );
+    glk_put_string( "\":" );
+    stream_num( num, FALSE, 0 );
+    if ( !last )
+    {
+        glk_put_char( ',' );
+    }
+}
+
+#endif /* VM_PROFILING */

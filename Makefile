@@ -22,7 +22,7 @@ LINK_OPTS = \
 	-s EMTERPRETIFY=1 \
 	-s EMTERPRETIFY_ASYNC=1 \
 	-s EMTERPRETIFY_WHITELIST='"@whitelist.json"' \
-	-s EXPORTED_FUNCTIONS='["_emglulxeen"]' \
+	-s EXPORTED_FUNCTIONS='["_emautosave","_emglulxeen"]' \
 	-s MODULARIZE=1
 
 OPTIONS = -Wall -Wmissing-prototypes -Wstrict-prototypes -Wno-unused -DOS_UNIX

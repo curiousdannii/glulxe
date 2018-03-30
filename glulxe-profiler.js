@@ -25,7 +25,9 @@ class Glulxe extends EmglkenVM
 			profcalls: 0,
 		}
 	}
-	
+
+	do_autosave() {}
+
 	start()
 	{
 		const data_stream = this.options.Glk.glk_stream_open_memory( this.data, 2, 0 )
