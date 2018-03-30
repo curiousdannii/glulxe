@@ -26,6 +26,64 @@ class Glulxe extends EmglkenVM
 		}
 	}
 
+	// Code copied from GlkApi's glk_stream_open_memory and gli_new_stream
+	create_fake_stream( buf, writeable )
+	{
+		var str = {}
+		str.type = 3
+		str.rock = 0
+		str.disprock = undefined
+
+		str.unicode = false
+		/* isbinary is only meaningful for Resource and streaming-File streams */
+		//str.isbinary = false
+		str.streaming = false
+		//str.ref = null
+		//str.win = null
+		//str.file = null
+
+		/* for buffer mode */
+		//str.buf = null
+		//str.bufpos = 0
+		//str.buflen = 0
+		//str.bufeof = 0
+		str.timer_id = null
+		str.flush_func = null
+
+		/* for streaming mode */
+		str.fstream = null
+
+		str.readcount = 0
+		str.writecount = 0
+		str.readable = !writeable
+		str.writable = writeable
+
+		/*str.prev = null
+		str.next = gli_streamlist
+		gli_streamlist = str
+		if (str.next)
+			str.next.prev = str*/
+
+		if ( this.options.GiDispa )
+		{
+			this.options.GiDispa.class_register( 'stream', str )
+		}
+
+		if ( buf )
+		{
+			str.buf = buf
+			str.buflen = buf.length
+			str.bufpos = 0
+			str.bufeof = writeable ? 0 : str.buflen
+			if ( this.options.GiDispa )
+			{
+				this.options.GiDispa.retain_array( buf )
+			}
+		}
+
+		return str
+	}
+
     do_autosave( save )
     {
         if ( !this.options.Dialog )
@@ -51,6 +109,10 @@ class Glulxe extends EmglkenVM
             // Retrieve the autosave data
             Glk.glk_stream_close( json_stream, stream_results )
             const json_text = String.fromCharCode.apply( null, json_buffer.slice( 0, stream_results.get_field( 1 ) ) )
+            if ( !json_text )
+            {
+                return
+            }
             snapshot = JSON.parse( json_text )
 
             // And then the RAM/savefile
@@ -61,7 +123,7 @@ class Glulxe extends EmglkenVM
             snapshot.glk = Glk.save_allstate()
 
             // For now manually filter out the gamefile stream
-            snapshot.glk.streams = snapshot.glk.streams.filter( str => !str.buf || str.buf.len < 2048 )
+            //snapshot.glk.streams = snapshot.glk.streams.filter( str => !str.buf || str.buf.len < 2048 )
         }
 
         this.options.Dialog.autosave_write( this.signature, snapshot )
@@ -69,7 +131,8 @@ class Glulxe extends EmglkenVM
 
 	start()
 	{
-		const data_stream = this.options.Glk.glk_stream_open_memory( this.data, 2, 0 )
+		//const data_stream = this.options.Glk.glk_stream_open_memory( this.data, 2, 0 )
+		const data_stream = this.create_fake_stream( this.data, 0 )
 		this.vm['_emglulxeen']( data_stream.disprock, 0, 0 )
 		delete this.data
 	}
