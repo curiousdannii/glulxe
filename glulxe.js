@@ -98,29 +98,31 @@ class Glulxe extends EmglkenVM
             const stream_results = new Glk.RefStruct()
 
             // Set up the streams to pass to the VM
-            const json_buffer = new Uint8Array( 1024 )
-            const json_stream = Glk.glk_stream_open_memory( json_buffer, 1, 0 )
             const ram_buffer = new Uint8Array( this.options.autosavelen )
             const ram_stream = Glk.glk_stream_open_memory( ram_buffer, 1, 0 )
+            const misc_buffer = new Uint32Array( 256 )
+            const misc_stream = Glk.glk_stream_open_memory_uni( misc_buffer, 1, 0 )
 
             // Call into the VM
-            this.vm['_emautosave']( json_stream.disprock, ram_stream.disprock )
+            this.vm['_emautosave']( ram_stream.disprock, misc_stream.disprock )
 
-            // Retrieve the autosave data
-            Glk.glk_stream_close( json_stream, stream_results )
-            const json_text = String.fromCharCode.apply( null, json_buffer.slice( 0, stream_results.get_field( 1 ) ) )
-            if ( !json_text )
+            // Retrieve the RAM/savefile
+            Glk.glk_stream_close( ram_stream, stream_results )
+            const ram_len = stream_results.get_field( 1 )
+            if ( !ram_len )
             {
                 return
             }
-            snapshot = JSON.parse( json_text )
 
-            // And then the RAM/savefile
-            Glk.glk_stream_close( ram_stream, stream_results )
-            snapshot.ram = ram_buffer.slice( 0, stream_results.get_field( 1 ) )
+            // Retrieve the misc autosave data
+            Glk.glk_stream_close( misc_stream, stream_results )
 
             // Finally save the Glk state
-            snapshot.glk = Glk.save_allstate()
+            snapshot = {
+                glk: Glk.save_allstate(),
+                misc: Array.from( misc_buffer.slice( 0, stream_results.get_field( 1 ) ) ),
+                ram: ram_buffer.slice( 0, ram_len ),
+            }
 
             // For now manually filter out the gamefile stream
             //snapshot.glk.streams = snapshot.glk.streams.filter( str => !str.buf || str.buf.len < 2048 )

@@ -19,7 +19,6 @@ CC = emcc \
 
 LINK_OPTS = \
 	--js-library $(GLKINCLUDEDIR)/library.js \
-	--js-library library.js \
 	-s EMTERPRETIFY=1 \
 	-s EMTERPRETIFY_ASYNC=1 \
 	-s EMTERPRETIFY_WHITELIST='"@whitelist.json"' \
@@ -64,7 +63,7 @@ glulxe-profiler-core.js: CFLAGS += -DVM_PROFILING
 glulxe-profiler-core.js: LINK_OPTS += -s EMTERPRETIFY_FILE='"glulxe-profiler-core.js.bin"'
 
 
-glulxe-core.js: $(NOPROFILEROBJ) $(GLKINCLUDEDIR)/Make.$(GLK) $(GLKINCLUDEDIR)/libemglken.a $(GLKINCLUDEDIR)/library.js library.js
+glulxe-core.js: $(NOPROFILEROBJ) $(GLKINCLUDEDIR)/Make.$(GLK) $(GLKINCLUDEDIR)/libemglken.a $(GLKINCLUDEDIR)/library.js
 	$(CC) $(OPTIONS) $(LINK_OPTS) -o $@ $(NOPROFILEROBJ) $(LIBS)
 
 glulxe-profiler-core.js: $(PROFILEROBJ) $(GLKINCLUDEDIR)/Make.$(GLK) $(GLKINCLUDEDIR)/libemglken.a $(GLKINCLUDEDIR)/library.js

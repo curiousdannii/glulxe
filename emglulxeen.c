@@ -106,17 +106,33 @@ static glui32 eventaddr;
 void emautorestore_hook( void )
 {
     glui32 ramStreamTag = 0;
-    glui32 iosysmode;
-    glui32 iosysrock;
-    emautorestore( &ramStreamTag, &iosysmode, &iosysrock, &protectend, &protectstart, &stringtable );
+    glui32 miscStreamTag = 0;
+    int res = glem_try_autorestore( &ramStreamTag, &miscStreamTag );
 
-    if ( ramStreamTag )
+    if ( res )
     {
+        // Restore the savefile
         strid_t ramstream = gli_new_stream( strtype_Memory, ramStreamTag, 0 );
-        perform_restore( ramstream, 1 );
+        res = perform_restore( ramstream, 1 );
         glk_stream_close( ramstream, NULL );
+        if ( res )
+        {
+            return;
+        }
         pop_callstub( 0 );
-        stream_set_iosys( iosysmode, iosysrock );
+
+        // Restore the misc data
+        strid_t miscstream = gli_new_stream( strtype_Memory, miscStreamTag, 0 );
+        miscstream->unicode = TRUE;
+
+        stream_set_iosys( glk_get_char_stream_uni( miscstream ), glk_get_char_stream_uni( miscstream ) );
+        protectend = glk_get_char_stream_uni( miscstream );
+        protectstart = glk_get_char_stream_uni( miscstream );
+        stringtable = glk_get_char_stream_uni( miscstream );
+        glk_stream_close( miscstream, NULL );
+
+        // And finally, restore Glk
+        glem_restore_state();
     }
 }
 
@@ -125,7 +141,7 @@ void emselect_hook( glui32 ev )
     eventaddr = ev;
 }
 
-void emautosave( glui32 jsonStreamTag, glui32 ramStreamTag )
+void emautosave( glui32 ramStreamTag, glui32 miscStreamTag )
 {
     // Save the RAM/savefile
     // This code copied from iosstarm.m
@@ -180,24 +196,22 @@ void emautosave( glui32 jsonStreamTag, glui32 ramStreamTag )
     if (origstackptr != stackptr)
         fatal_error("Stack pointer mismatch in autosave");
 
-    // Prepare for outputting JSON
+    // Output the other data
     strid_t oldstr = glk_stream_get_current();
-    strid_t jsonstream = gli_new_stream( strtype_Memory, jsonStreamTag, 0 );
-    glk_stream_set_current( jsonstream );
-    glk_put_char( '{' );
+    strid_t miscstream = gli_new_stream( strtype_Memory, miscStreamTag, 0 );
+    miscstream->unicode = TRUE;
+    glk_stream_set_current( miscstream );
 
     // Output the number properties
     glui32 iosysmode;
     glui32 iosysrock;
     stream_get_iosys( &iosysmode, &iosysrock );
-    print_json_property( "iosysmode", iosysmode, 0 );
-    print_json_property( "iosysrock", iosysrock, 0 );
-    print_json_property( "protectend", protectend, 0 );
-    print_json_property( "protectstart", protectstart, 0 );
-    print_json_property( "stringtable", stringtable, 1 );
+    glk_put_char_uni( iosysmode );
+    glk_put_char_uni( iosysrock );
+    glk_put_char_uni( protectend );
+    glk_put_char_uni( protectstart );
+    glk_put_char_uni( stringtable );
 
-    // Finish up the JSON
-    glk_put_char( '}' );
     glk_stream_set_current( oldstr );
 }
 
