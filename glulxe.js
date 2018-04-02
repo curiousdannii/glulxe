@@ -9,7 +9,8 @@ https://github.com/curiousdannii/emglken
 
 */
 
-const EmglkenVM = require( '../emglken/emglken_vm.js' )
+const EmglkenVM = require( '../emglken/include/vm.js' )
+const create_fake_stream = require( '../emglken/include/create_fake_stream.js' )
 
 class Glulxe extends EmglkenVM
 {
@@ -24,64 +25,6 @@ class Glulxe extends EmglkenVM
 			profile_stream: 0,
 			profcalls: 0,
 		}
-	}
-
-	// Code copied from GlkApi's glk_stream_open_memory and gli_new_stream
-	create_fake_stream( buf, writeable )
-	{
-		var str = {}
-		str.type = 3
-		str.rock = 0
-		str.disprock = undefined
-
-		str.unicode = false
-		/* isbinary is only meaningful for Resource and streaming-File streams */
-		//str.isbinary = false
-		str.streaming = false
-		//str.ref = null
-		//str.win = null
-		//str.file = null
-
-		/* for buffer mode */
-		//str.buf = null
-		//str.bufpos = 0
-		//str.buflen = 0
-		//str.bufeof = 0
-		str.timer_id = null
-		str.flush_func = null
-
-		/* for streaming mode */
-		str.fstream = null
-
-		str.readcount = 0
-		str.writecount = 0
-		str.readable = !writeable
-		str.writable = writeable
-
-		/*str.prev = null
-		str.next = gli_streamlist
-		gli_streamlist = str
-		if (str.next)
-			str.next.prev = str*/
-
-		if ( this.options.GiDispa )
-		{
-			this.options.GiDispa.class_register( 'stream', str )
-		}
-
-		if ( buf )
-		{
-			str.buf = buf
-			str.buflen = buf.length
-			str.bufpos = 0
-			str.bufeof = writeable ? 0 : str.buflen
-			if ( this.options.GiDispa )
-			{
-				this.options.GiDispa.retain_array( buf )
-			}
-		}
-
-		return str
 	}
 
     do_autosave( save )
@@ -104,7 +47,7 @@ class Glulxe extends EmglkenVM
             const misc_stream = Glk.glk_stream_open_memory_uni( misc_buffer, 1, 0 )
 
             // Call into the VM
-            this.vm['_emautosave']( ram_stream.disprock, misc_stream.disprock )
+            this.vm['_emautosave']( ram_stream.addr, misc_stream.addr )
 
             // Retrieve the RAM/savefile
             Glk.glk_stream_close( ram_stream, stream_results )
@@ -133,9 +76,8 @@ class Glulxe extends EmglkenVM
 
 	start()
 	{
-		//const data_stream = this.options.Glk.glk_stream_open_memory( this.data, 2, 0 )
-		const data_stream = this.create_fake_stream( this.data, 0 )
-		this.vm['_emglulxeen']( data_stream.disprock, 0, 0 )
+		const data_stream = create_fake_stream( this.data, 0, this.options.GiDispa )
+		this.vm['_emglulxeen']( data_stream.addr, 0, 0 )
 		delete this.data
 	}
 

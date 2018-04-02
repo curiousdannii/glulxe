@@ -12,7 +12,7 @@ void print_json_property( char *prop, glui32 num, int last );
 static int parse_partial_operand(int *opmodes);
 
 // Adapted from glkunix_startup_code() from unixstrt.c
-void emglulxeen ( glui32 gameStreamTag, glui32 profileStreamTag, glui32 profcalls )
+void emglulxeen( strid_t gameStream, strid_t profileStream, glui32 profcalls )
 {
     unsigned char buf[12];
     int res;
@@ -21,9 +21,9 @@ void emglulxeen ( glui32 gameStreamTag, glui32 profileStreamTag, glui32 profcall
     init_emglken();
 
     #if VM_PROFILING
-        if ( profileStreamTag )
+        if ( profileStream )
         {
-            strid_t profstr = gli_new_stream( strtype_File, profileStreamTag, 0 );
+            strid_t profstr = profileStream;
             if ( profstr )
             {
                 setup_profile( profstr, NULL );
@@ -36,7 +36,7 @@ void emglulxeen ( glui32 gameStreamTag, glui32 profileStreamTag, glui32 profcall
     #endif /* VM_PROFILING */
 
     // Set up the game stream
-    gamefile = gli_new_stream( strtype_File, gameStreamTag, 0 );
+    gamefile = gameStream;
 
     /* Now we have to check to see if it's a Blorb file. */
 
@@ -97,7 +97,7 @@ void emglulxeen ( glui32 gameStreamTag, glui32 profileStreamTag, glui32 profcall
 // Stub functions for profiling mode
 #if VM_PROFILING
 
-void emautosave( glui32 jsonStreamTag, glui32 ramStreamTag ) {}
+void emautosave( strid_t ramStream, strid_t miscStream ) {}
 
 #else /* VM_PROFILING */
 
@@ -105,14 +105,13 @@ static glui32 eventaddr;
 
 void emautorestore_hook( void )
 {
-    glui32 ramStreamTag = 0;
-    glui32 miscStreamTag = 0;
-    int res = glem_try_autorestore( &ramStreamTag, &miscStreamTag );
+    stream_t *ramstream = NULL;
+    stream_t *miscstream = NULL;
+    int res = glem_try_autorestore( &ramstream, &miscstream );
 
     if ( res )
     {
         // Restore the savefile
-        strid_t ramstream = gli_new_stream( strtype_Memory, ramStreamTag, 0 );
         res = perform_restore( ramstream, 1 );
         glk_stream_close( ramstream, NULL );
         if ( res )
@@ -122,9 +121,6 @@ void emautorestore_hook( void )
         pop_callstub( 0 );
 
         // Restore the misc data
-        strid_t miscstream = gli_new_stream( strtype_Memory, miscStreamTag, 0 );
-        miscstream->unicode = TRUE;
-
         stream_set_iosys( glk_get_char_stream_uni( miscstream ), glk_get_char_stream_uni( miscstream ) );
         protectend = glk_get_char_stream_uni( miscstream );
         protectstart = glk_get_char_stream_uni( miscstream );
@@ -132,7 +128,7 @@ void emautorestore_hook( void )
         glk_stream_close( miscstream, NULL );
 
         // And finally, restore Glk
-        glem_restore_state();
+        glem_restore_glkapi();
     }
 }
 
@@ -141,7 +137,7 @@ void emselect_hook( glui32 ev )
     eventaddr = ev;
 }
 
-void emautosave( glui32 ramStreamTag, glui32 miscStreamTag )
+void emautosave( strid_t ramstream, strid_t miscstream )
 {
     // Save the RAM/savefile
     // This code copied from iosstarm.m
@@ -188,7 +184,6 @@ void emautosave( glui32 ramStreamTag, glui32 miscStreamTag )
     StkW4(stackptr+12, frameptr);
     stackptr += 16;
 
-    strid_t ramstream = gli_new_stream( strtype_Memory, ramStreamTag, 0 );
     perform_save( ramstream );
 
     stackptr -= 16; // discard the temporary callstub
@@ -198,8 +193,6 @@ void emautosave( glui32 ramStreamTag, glui32 miscStreamTag )
 
     // Output the other data
     strid_t oldstr = glk_stream_get_current();
-    strid_t miscstream = gli_new_stream( strtype_Memory, miscStreamTag, 0 );
-    miscstream->unicode = TRUE;
     glk_stream_set_current( miscstream );
 
     // Output the number properties

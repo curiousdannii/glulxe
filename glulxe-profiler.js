@@ -3,13 +3,14 @@
 Emglken port of Glulxe
 ======================
 
-Copyright (c) 2017 Dannii Willis
+Copyright (c) 2018 Dannii Willis
 MIT licenced
 https://github.com/curiousdannii/emglken
 
 */
 
-const EmglkenVM = require( '../emglken/emglken_vm.js' )
+const EmglkenVM = require( '../emglken/include/vm.js' )
+const create_fake_stream = require( '../emglken/include/create_fake_stream.js' )
 
 class Glulxe extends EmglkenVM
 {
@@ -30,9 +31,9 @@ class Glulxe extends EmglkenVM
 
 	start()
 	{
-		const data_stream = this.options.Glk.glk_stream_open_memory( this.data, 2, 0 )
-		const profile_stream_tag = this.options.profile_stream ? this.options.profile_stream.disprock : 0
-		this.vm['_emglulxeen']( data_stream.disprock, profile_stream_tag, this.options.profcalls )
+		const data_stream = create_fake_stream( this.data, 0, this.options.GiDispa )
+		const profile_stream_tag = this.options.profile_stream ? this.options.profile_stream.addr : 0
+		this.vm['_emglulxeen']( data_stream.addr, profile_stream_tag, this.options.profcalls )
 		delete this.data
 	}
 

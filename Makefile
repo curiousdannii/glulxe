@@ -62,11 +62,12 @@ glulxe-core.js: LINK_OPTS += -s EMTERPRETIFY_FILE='"glulxe-core.js.bin"'
 glulxe-profiler-core.js: CFLAGS += -DVM_PROFILING
 glulxe-profiler-core.js: LINK_OPTS += -s EMTERPRETIFY_FILE='"glulxe-profiler-core.js.bin"'
 
+EMGLKEN_INC = $(GLKINCLUDEDIR)/Make.$(GLK) $(GLKINCLUDEDIR)/libemglken.a $(GLKINCLUDEDIR)/library.js $(GLKINCLUDEDIR)/include/*.js
 
-glulxe-core.js: $(NOPROFILEROBJ) $(GLKINCLUDEDIR)/Make.$(GLK) $(GLKINCLUDEDIR)/libemglken.a $(GLKINCLUDEDIR)/library.js
+glulxe-core.js: $(NOPROFILEROBJ) $(EMGLKEN_INC)
 	$(CC) $(OPTIONS) $(LINK_OPTS) -o $@ $(NOPROFILEROBJ) $(LIBS)
 
-glulxe-profiler-core.js: $(PROFILEROBJ) $(GLKINCLUDEDIR)/Make.$(GLK) $(GLKINCLUDEDIR)/libemglken.a $(GLKINCLUDEDIR)/library.js
+glulxe-profiler-core.js: $(PROFILEROBJ) $(EMGLKEN_INC)
 	$(CC) $(OPTIONS) $(LINK_OPTS) -o $@ $(PROFILEROBJ) $(LIBS)
 
 

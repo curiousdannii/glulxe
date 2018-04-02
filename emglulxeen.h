@@ -10,7 +10,7 @@
 #include "emglken.h"
 #include "glulxe.h"
 
-extern void emautosave ( glui32 ramStreamTag, glui32 miscStreamTag );
-extern void emglulxeen ( glui32 gameStreamTag, glui32 profileStreamTag, glui32 profcalls );
+extern void emautosave( strid_t ramStream, strid_t miscStream );
+extern void emglulxeen( strid_t gameStream, strid_t profileStream, glui32 profcalls );
 
 #endif // EMGLULXEEN_H
