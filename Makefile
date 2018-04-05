@@ -23,7 +23,8 @@ LINK_OPTS = \
 	-s EMTERPRETIFY_ASYNC=1 \
 	-s EMTERPRETIFY_WHITELIST='"@whitelist.json"' \
 	-s EXPORTED_FUNCTIONS='["_emautosave","_emglulxeen"]' \
-	-s MODULARIZE=1
+	-s MODULARIZE=1 \
+	-s WASM=1
 
 OPTIONS = -Wall -Wmissing-prototypes -Wstrict-prototypes -Wno-unused -DOS_UNIX
 
@@ -64,10 +65,10 @@ glulxe-profiler-core.js: LINK_OPTS += -s EMTERPRETIFY_FILE='"glulxe-profiler-cor
 
 EMGLKEN_INC = $(GLKINCLUDEDIR)/Make.$(GLK) $(GLKINCLUDEDIR)/libemglken.a $(GLKINCLUDEDIR)/library.js $(GLKINCLUDEDIR)/include/*.js
 
-glulxe-core.js: $(NOPROFILEROBJ) $(EMGLKEN_INC)
+glulxe-core.js: $(NOPROFILEROBJ) $(EMGLKEN_INC) Makefile
 	$(CC) $(OPTIONS) $(LINK_OPTS) -o $@ $(NOPROFILEROBJ) $(LIBS)
 
-glulxe-profiler-core.js: $(PROFILEROBJ) $(EMGLKEN_INC)
+glulxe-profiler-core.js: $(PROFILEROBJ) $(EMGLKEN_INC) Makefile
 	$(CC) $(OPTIONS) $(LINK_OPTS) -o $@ $(PROFILEROBJ) $(LIBS)
 
 
